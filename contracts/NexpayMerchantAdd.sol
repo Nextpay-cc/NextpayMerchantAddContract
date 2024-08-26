@@ -46,13 +46,13 @@ contract NexpayMerchantAdd {
     }
 
     // Validate if a given address belongs to a registered merchant (public function)
-    function validateAddress(address merchant, address addressToValidate) public returns (bool) {
+    function validateAddress(address merchant, address addressToValidate) public view returns (bool) {
         require(isRegistered[merchant], "Merchant not registered");
 
         address[] memory addresses = merchantAddresses[merchant];
         for (uint i = 0; i < addresses.length; i++) {
             if (addresses[i] == addressToValidate) {
-                emit AddressValidated(merchant, addressToValidate);
+                // emit AddressValidated(merchant, addressToValidate);
                 return true;
             }
         }

@@ -4,6 +4,8 @@ module.exports = buildModule("NexpayMerchantAdd", (m) => {
     // Get the deployer account
     const deployer = m.getAccount(0);
     console.log("Deployer account:", deployer.address);
-    const merchantContract = m.contract("NexpayMerchantAdd", [], { proxy: true });
+
+    const merchantContract = m.contract("NexpayMerchantAdd", [], { from: deployer });
+
     return { merchantContract };
 });

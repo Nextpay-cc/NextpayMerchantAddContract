@@ -11,6 +11,12 @@ const { PRIVATE_KEY } = process.env;
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: "0.8.24",
+  settings: {
+    optimizer: {
+      enabled: true, // 如果你在部署时启用了优化，确保这里也启用
+      runs: 200      // 与部署时的设置一致
+    }
+  },
   networks: {
     dev: { url: 'http://localhost:8545' },
     Sepolia: {
@@ -21,8 +27,4 @@ module.exports = {
   mocha: {
     timeout: 10000
   },
-  etherscan: {
-    // Your Etherscan API key for contract verification (optional)
-    apiKey: ""
-  }
 };
