@@ -5,7 +5,7 @@ contract NexpayMerchantAdd {
     mapping(address => address[]) private merchantAddresses;
 
     // Mapping from merchant address to registration status
-    mapping(address => bool) private isRegistered;
+    mapping(address => bool) public isRegistered;
 
     // Event: Emitted when a merchant registers with their addresses
     event MerchantRegistered(address indexed merchant, address[] addresses);
@@ -30,13 +30,16 @@ contract NexpayMerchantAdd {
 
     // Update the payment addresses for a registered merchant
     function updateAddresses(address[] memory addresses) public {
-        require(isRegistered[msg.sender], "Merchant not registered");
-        require(addresses.length > 0, "Must provide at least one address");
+            require(isRegistered[msg.sender], "Merchant not registered");
+            require(addresses.length > 0, "Must provide at least one address");
 
-        // Update addresses
-        merchantAddresses[msg.sender] = addresses;
+            // Clear old addresses by assigning a new empty array
+            delete merchantAddresses[msg.sender];
 
-        emit AddressesUpdated(msg.sender, addresses);
+            // Add new addresses
+            merchantAddresses[msg.sender] = addresses;
+
+    emit AddressesUpdated(msg.sender, addresses);
     }
 
     // Get all payment addresses for the caller (only accessible by the merchant)
