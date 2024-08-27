@@ -4,6 +4,9 @@ require("@nomicfoundation/hardhat-ethers");
 // require('@nomiclabs/hardhat-etherscan');
 require('@openzeppelin/hardhat-upgrades');
 require('dotenv').config();
+const { ProxyAgent, setGlobalDispatcher } = require("undici");
+const proxyAgent = new ProxyAgent("http://127.0.0.1:7890");
+setGlobalDispatcher(proxyAgent);
 
 const Sepolia_RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
 const { PRIVATE_KEY } = process.env;
@@ -27,4 +30,7 @@ module.exports = {
   mocha: {
     timeout: 10000
   },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
+  }
 };
