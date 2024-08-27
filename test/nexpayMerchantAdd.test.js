@@ -29,38 +29,25 @@ describe("MerchantContract", function () {
 
   describe("register Checks", function () {
 
-    it("should allow a merchant to register with addresses", async function () {
+    it("should allow a merchant to register", async function () {
       const addresses = [addr1.address, addr2.address];
 
-      await expect(merchantContract.registerMerchant(addresses))
+      await expect(merchantContract.registerMerchant())
         .to.emit(merchantContract, "MerchantRegistered")
-        .withArgs(owner.address, addresses);
+        .withArgs(owner.address);
 
       const storedAddresses = await merchantContract.getAddresses();
-      expect(storedAddresses).to.deep.equal(addresses);
-    });
-
-    it("should not allow the same merchant to register twice", async function () {
-      const addresses = [addr1.address, addr2.address];
-      const addresses2 = [addr3.address];
-
-      await merchantContract.registerMerchant(addresses);
-      await expect(merchantContract.registerMerchant(addresses2)).to.be.revertedWith("Merchant already registered");
+      expect(storedAddresses).to.deep.equal([]);
     });
 
     it("should not allow the same merchant to register twice", async function () {
       const addresses = [addr1.address, addr2.address];
   
       // Register the merchant for the first time
-      await merchantContract.registerMerchant(addresses);
+      await merchantContract.registerMerchant();
   
       // Attempt to register the merchant again
-      await expect(merchantContract.registerMerchant(addresses)).to.be.revertedWith("Merchant already registered");
-    });
-
-    it("should revert if no addresses are provided during registration", async function () {
-      // Attempt to register a merchant with an empty address array
-      await expect(merchantContract.registerMerchant([])).to.be.revertedWith("Must provide at least one address");
+      await expect(merchantContract.registerMerchant()).to.be.revertedWith("Merchant already registered");
     });
   })
 
@@ -70,8 +57,12 @@ describe("MerchantContract", function () {
       const newAddresses = [addr3.address];
   
       // Register merchant with initial addresses
-      await merchantContract.registerMerchant(initialAddresses);
-  
+      await merchantContract.registerMerchant();
+      await merchantContract.updateAddresses(initialAddresses)
+
+      const storeInitAddresses = await merchantContract.getAddresses();
+      expect(storeInitAddresses).to.deep.equal(initialAddresses);
+
       // Update merchant addresses with new addresses
       await expect(merchantContract.updateAddresses(newAddresses))
         .to.emit(merchantContract, "AddressesUpdated")
@@ -90,26 +81,18 @@ describe("MerchantContract", function () {
         .to.be.revertedWith("Merchant not registered");
     });
 
-    it("should revert if no addresses are provided", async function () {
-      const initialAddresses = [addr1.address, addr2.address];
-      
-      // Register merchant with initial addresses
-      await merchantContract.registerMerchant(initialAddresses);
-  
-      // Attempt to update with an empty array
-      await expect(merchantContract.updateAddresses([]))
-        .to.be.revertedWith("Must provide at least one address");
-    });
-
   })
 
-  describe("getAddresses Checks", function () {
+  describe("validate Checks", function () {
 
     it("should return true if the address is valid for a registered merchant", async function () {
       const addresses = [addr1.address, addr2.address];
 
       // Register the merchant with initial addresses
-      await merchantContract.registerMerchant(addresses);
+      await merchantContract.registerMerchant();
+
+      await merchantContract.updateAddresses(addresses)
+
 
       // Validate one of the registered addresses
       const isValid = await merchantContract.validateAddress(owner.address, addr1.address);
@@ -120,7 +103,7 @@ describe("MerchantContract", function () {
         const addresses = [addr1.address, addr2.address];
 
         // Register the merchant with initial addresses
-        await merchantContract.registerMerchant(addresses);
+        await merchantContract.registerMerchant();
 
         // Validate an address that is not in the registered addresses
         const isValid = await merchantContract.validateAddress(owner.address, addr3.address);
@@ -138,8 +121,9 @@ describe("MerchantContract", function () {
     it("should only allow registered merchants to get their addresses", async function () {
       const addresses = [addr1.address, addr2.address];
 
-      await merchantContract.registerMerchant(addresses);
-      
+      await merchantContract.registerMerchant();
+      await merchantContract.updateAddresses(addresses)
+
       await expect(merchantContract.connect(addr1).getAddresses())
         .to.be.revertedWith("Merchant not registered");
       
@@ -149,6 +133,52 @@ describe("MerchantContract", function () {
 
   })
   
+  describe("addItem Checks", function () {
+    it ("should revert if the merchant is not registered", async function () {
+      const itemId = "1";
+      await expect(merchantContract.addItem(itemId))
+      .to.be.revertedWith("Merchant not registered");
+    })
+
+    it("should allow a registered merchant to add an item", async function () {
+      const itemId = "1";
+      await merchantContract.registerMerchant();
+
+      // 添加 item
+      await expect(merchantContract.addItem(itemId))
+        .to.emit(merchantContract, "ItemAdded")
+        .withArgs(owner.address, itemId);
+
+      // 检查商户的 item 列表
+      const items = await merchantContract.getItems();
+      expect(items).to.deep.equal([itemId]);
+
+      // 验证 itemId 到商户地址的映射
+      const merchantAddress = await merchantContract.findMerchantByItem(itemId);
+      expect(merchantAddress).to.equal(owner.address);
+    });
+  })
+
+  describe("findMerchantByItem Checks", function () {
+
+    it("should return the correct items for a registered merchant", async function () {
+      const itemId1 = "3";
+      const itemId2 = "4";
+      await merchantContract.registerMerchant();
+
+      // 添加多个 items
+      await merchantContract.addItem(itemId1);
+      await merchantContract.addItem(itemId2);
+
+      // 获取商户的所有 items
+      const items = await merchantContract.getItems();
+      expect(items).to.deep.equal([itemId1, itemId2]);
+
+      // 验证 itemId 到商户地址的映射
+      expect(await merchantContract.findMerchantByItem(itemId1)).to.equal(owner.address);
+      expect(await merchantContract.findMerchantByItem(itemId2)).to.equal(owner.address);
+    });
+  })
 
 });
 
