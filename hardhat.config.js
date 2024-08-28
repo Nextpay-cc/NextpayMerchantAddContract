@@ -21,6 +21,9 @@ module.exports = {
   //     runs: 200,
   //   },
   // },
+  sourcify: {
+    enabled: true
+  },
   networks: {
     dev: { url: 'http://localhost:8545' },
     sepolia: {
@@ -36,6 +39,6 @@ module.exports = {
     timeout: 10000
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY
+    apiKey: process.env.ETHERSCAN_API_KEY // npx hardhat verify --network amoy 0x 
   }
 };

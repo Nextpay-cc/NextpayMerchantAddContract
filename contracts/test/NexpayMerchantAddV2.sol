@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract NexpayMerchantAdd is Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract NexpayMerchantAddV2 is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     // Mapping from merchant address to an array of payment addresses
     mapping(address => address[]) private merchantAddresses;
 
@@ -17,6 +17,15 @@ contract NexpayMerchantAdd is Initializable, UUPSUpgradeable, OwnableUpgradeable
 
     // Mapping from item ID to array of associated addresses
     mapping(string => address[]) private itemToAddresses;
+
+    // Event: Emitted when a merchant updates their payment addresses
+    event AddressesUpdated(address indexed merchant, address[] addresses);
+
+    // Event: Emitted when an address is validated for a merchant
+    event AddressValidated(address indexed merchant, address validatedAddress);
+
+    // Event: Emitted when an item is added for a merchant
+    event ItemAdded(address indexed merchant, string itemId, address[] associatedAddresses);
 
     // Initializer function (replaces constructor)
     function initialize() public initializer {
@@ -36,6 +45,8 @@ contract NexpayMerchantAdd is Initializable, UUPSUpgradeable, OwnableUpgradeable
 
         // Add new addresses
         merchantAddresses[msg.sender] = addresses;
+
+        emit AddressesUpdated(msg.sender, addresses);
     }
 
     // Get all payment addresses for the caller (only accessible by the merchant)
@@ -66,6 +77,8 @@ contract NexpayMerchantAdd is Initializable, UUPSUpgradeable, OwnableUpgradeable
 
         // Associate the itemId with the merchant's addresses
         itemToAddresses[itemId] = addresses;
+
+        emit ItemAdded(msg.sender, itemId, addresses);
     }
 
     // Get all items for the caller (only accessible by the merchant)
@@ -81,5 +94,9 @@ contract NexpayMerchantAdd is Initializable, UUPSUpgradeable, OwnableUpgradeable
     // Get addresses associated with a specific item ID
     function getAddressesByItem(string memory itemId) public view returns (address[] memory) {
         return itemToAddresses[itemId];
+    }
+
+    function newFunction() public pure returns (string memory) {
+        return "New functionality in V2";
     }
 }
